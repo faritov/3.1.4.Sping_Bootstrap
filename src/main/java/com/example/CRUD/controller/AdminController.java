@@ -4,6 +4,7 @@ import com.example.CRUD.model.Role;
 import com.example.CRUD.model.User;
 import com.example.CRUD.service.RoleService;
 import com.example.CRUD.service.UserService;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,48 +27,38 @@ public class AdminController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping()
-    public String getAllUsers(Model model) {
-        model.addAttribute("listOfUsers", userService.getAllUsers());
-        return "allUsers";
+    @GetMapping
+    public String getUser(Model model, Authentication authentication) {
+        model.addAttribute("userList", userService.getAllUsers());
+        User user = (User) authentication.getPrincipal();
+        model.addAttribute("user", user);
+
+        model.addAttribute("roleList", roleService.getList());
+        model.addAttribute("users", userService.showUser(user.getId()));
+
+        return "admin";
     }
-    @GetMapping("/new")
-    public String getViewForNewUser(Model model) {
-        model.addAttribute("user", new User());
-        List<Role> roles = roleService.getList();
-        model.addAttribute("roleList", roles);
-        return "new";
-    }
-    @PostMapping()
-    public String addUser(@ModelAttribute("user") User user) {
+
+    @PostMapping("/newAddUserAdmin")
+    public String saveNewUser(
+            @ModelAttribute("user") User user
+    ) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userService.createUser(user);
         return "redirect:/admin";
     }
 
-    @GetMapping("/{id}")
-    public String showUser(@PathVariable("id") int id, Model model) {
-        model.addAttribute("user", userService.showUser(id));
-        model.addAttribute("roleList",roleService.getList());
-        return "showUser";
-    }
-
-    @GetMapping("/{id}/edit")
-    public String getViewForUpdateUser(Model model, @PathVariable("id") int id) {
-        model.addAttribute("user", userService.showUser(id));
-        model.addAttribute("roleList",roleService.getList());
-        return "edit";
-    }
-
-    @PatchMapping("/{id}")
-    public String updateUser(@ModelAttribute("user") User user) {
-        userService.updateUser(user);
+    @DeleteMapping("{id}/delete")
+    public String deleteUser(@PathVariable("id") int id) {
+        userService.deleteUser(id);
         return "redirect:/admin";
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable("id") int id) {
-        userService.deleteUser(id);
+
+    @PutMapping("/{id}/editUser")
+    public String userSaveEdit(@ModelAttribute("user") User user, @PathVariable("id") Long id) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userService.updateUser(user);
         return "redirect:/admin";
     }
 }
