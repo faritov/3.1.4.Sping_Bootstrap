@@ -47,10 +47,21 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public UserDetails getUser(String username) {
+    public UserDetails getUser(String email) {
+
+
         return entityManager.createQuery(
-                        "SELECT u FROM User u WHERE u.name = :username", User.class).setParameter("username", username)
+                        "SELECT u FROM User u WHERE u.email = :email", User.class).setParameter("email", email)
                 .getSingleResult();
+    }
+
+    @Override
+    public User getUserEmail(String email) {
+
+
+        return entityManager.createQuery(
+                "SELECT u FROM User u WHERE u.email = :email", User.class).getSingleResult();
+
     }
 
 }
